@@ -2,6 +2,8 @@ mod corrector;
 
 #[macro_use]
 extern crate generator;
+extern crate regex;
+
 
 use generator::{Generator, Gn};
 use std::io::{BufReader, BufRead};

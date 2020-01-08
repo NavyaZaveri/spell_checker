@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 generator = "0.6.19"
+regex = "1"

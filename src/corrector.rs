@@ -4,6 +4,8 @@ use std::ops::Add;
 
 use std::io::{BufRead, BufReader};
 use std::fs::File;
+use regex::Regex;
+use std::fs;
 
 
 #[derive(Debug)]
@@ -40,17 +42,15 @@ pub struct WordDataSet {
 
 
 fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
-    let reader = BufReader::new(File::open(filename).expect("Cannot open file.txt"));
+    let re = Regex::new("[a-z]+").unwrap();
+    let filepath = fs::read_to_string(filename).unwrap();
+    let words: Vec<&str> = re.find_iter(&filepath).map(|mat| mat.as_str()).collect();
+
     let mut counter = HashMap::new();
-    for line in reader.lines() {
-        let temp = line.unwrap();
-        let data = temp.split_whitespace().collect::<Vec<&str>>();
-        let word = data[0];
-        let count = data[1];
-        *counter.entry(word.to_string()).or_default() += 1;
-        dbg!(data[1]);
+    for w in words {
+        *counter.entry(w.to_string()).or_default() += 1;
     }
-    counter
+    return counter;
 }
 
 impl<'a> From<Vec<&'a str>> for WordDataSet {
@@ -205,6 +205,14 @@ mod tests {
         let s = SimpleCorrector::from(word_list);
         let res = s.correct(test_word);
         assert_eq!(res.unwrap(), "ab");
+    }
+
+    #[test]
+    fn test_corrector_with_actual_dataset() {
+        let test_word = "inconcevable";
+        let s = SimpleCorrector::new("big.txt");
+        let corrected_word = s.correct(test_word);
+        assert_eq!(corrected_word.unwrap(), "inconceivable");
     }
 }
 
