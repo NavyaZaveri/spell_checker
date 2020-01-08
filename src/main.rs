@@ -29,6 +29,10 @@ fn print<S: AsRef<str>>(stringlike: S) {
     println!("got: {:?}", str_ref)
 }
 
+fn create() -> String{
+    return "fpwe".to_string();
+}
+
 
 fn main() {
     let a: &str = "str";
@@ -47,9 +51,6 @@ fn main() {
     let s = Screen { componenets: vec![Box::new(Foo {}), Box::new(Bar {})] };
     s.run();
     let string = String::from("foepfe");
-
-    let m = vec![&string];
-    let r = string;
 
 }
 
