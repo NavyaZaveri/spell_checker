@@ -44,11 +44,11 @@ pub struct WordDataSet {
 fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
     let re = Regex::new("[a-z]+").unwrap();
     let filepath = fs::read_to_string(filename).unwrap();
-    let words: Vec<&str> = re.find_iter(&filepath).map(|mat| mat.as_str()).collect();
+    let words: Vec<String> = re.find_iter(&filepath).map(|mat| mat.as_str().to_ascii_lowercase()).collect();
 
     let mut counter = HashMap::new();
     for w in words {
-        *counter.entry(w.to_string()).or_default() += 1;
+        *counter.entry(w).or_default() += 1;
     }
     return counter;
 }
@@ -101,7 +101,7 @@ pub struct SimpleCorrector {
 
 
 impl SimpleCorrector {
-    fn new(filename: &str) -> SimpleCorrector {
+    pub fn new(filename: &str) -> SimpleCorrector {
         return SimpleCorrector {
             data_set: WordDataSet::new(filename)
         };
@@ -193,8 +193,8 @@ mod tests {
         let word = "ab";
         let word_list = vec!["ab", "cd"];
         let s = SimpleCorrector::from(word_list);
-        let res = s.correct("ab");
-        dbg!(res);
+        let corrected_word = s.correct("ab");
+        assert_eq!(corrected_word.unwrap(), "ab");
     }
 
 
@@ -203,8 +203,8 @@ mod tests {
         let test_word = "aa";
         let word_list = vec!["ab", "cd"];
         let s = SimpleCorrector::from(word_list);
-        let res = s.correct(test_word);
-        assert_eq!(res.unwrap(), "ab");
+        let corrected_word = s.correct(test_word);
+        assert_eq!(corrected_word.unwrap(), "ab");
     }
 
     #[test]
