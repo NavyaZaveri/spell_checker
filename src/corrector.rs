@@ -12,6 +12,7 @@ struct EditWord {
     editDistance: usize,
 }
 
+
 impl EditWord {
     fn new(w: String, editDistance: usize) -> EditWord {
         return EditWord { word: w, editDistance };
@@ -38,15 +39,18 @@ pub struct WordDataSet {
 }
 
 
-fn extract_words(filename: &'static str) -> HashMap<String, usize> {
+fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
     let reader = BufReader::new(File::open(filename).expect("Cannot open file.txt"));
-    let mut map = HashMap::new();
+    let mut counter = HashMap::new();
     for line in reader.lines() {
-        for word in line.unwrap().split_whitespace() {
-            map.insert(word.to_string(), 20);
-        }
+        let temp = line.unwrap();
+        let data = temp.split_whitespace().collect::<Vec<&str>>();
+        let word = data[0];
+        let count = data[1];
+        *counter.entry(word.to_string()).or_default() += 1;
+        dbg!(data[1]);
     }
-    map
+    counter
 }
 
 impl<'a> From<Vec<&'a str>> for WordDataSet {
@@ -56,6 +60,13 @@ impl<'a> From<Vec<&'a str>> for WordDataSet {
             *counter.entry(w.to_string()).or_default() += 1;
         }
         return WordDataSet { counter };
+    }
+}
+
+
+impl<'a> From<Vec<&'a str>> for SimpleCorrector {
+    fn from(vec: Vec<&'a str>) -> SimpleCorrector {
+        return SimpleCorrector { data_set: WordDataSet::from(vec) };
     }
 }
 
@@ -69,6 +80,12 @@ impl WordDataSet {
 
     fn exists(&self, word: &str) -> bool {
         return self.counter.contains_key(word);
+    }
+
+    pub fn new(filename: &str) -> WordDataSet {
+        return WordDataSet {
+            counter: extract_words_from_file(filename)
+        };
     }
 }
 
@@ -84,6 +101,11 @@ pub struct SimpleCorrector {
 
 
 impl SimpleCorrector {
+    fn new(filename: &str) -> SimpleCorrector {
+        return SimpleCorrector {
+            data_set: WordDataSet::new(filename)
+        };
+    }
     pub fn correct(&self, word: &str) -> Option<String> {
         if self.data_set.exists(word) {
             return Some(word.to_string());
@@ -101,21 +123,15 @@ impl SimpleCorrector {
 fn edit1(w: &str) -> Stream<String> {
     let pairs = splits(w);
     let g = Gn::new_scoped(move |mut s| {
-        //deletes
         for (a, b) in pairs.iter() {
             let delete = format!("{}{}", a, b.get(1..).unwrap_or_default());
             s.yield_(delete);
-        }
 
-        for (a, b) in pairs.iter() {
-            for c in ASCII_LOWER.iter() {
-
-                //replace
-                let replace = format!("{}{}{}", a, c, b.get(1..).unwrap_or_default());
+            for new_char in ASCII_LOWER.iter() {
+                let replace = format!("{}{}{}", a, new_char, b.get(1..).unwrap_or_default());
                 s.yield_(replace);
 
-                //insert
-                let insert = format!("{}{}{}", a, c, b);
+                let insert = format!("{}{}{}", a, new_char, b);
                 s.yield_(insert);
             }
         }
@@ -124,6 +140,7 @@ fn edit1(w: &str) -> Stream<String> {
     });
     return g;
 }
+
 
 fn edits(n: usize, word: &str) -> Stream<EditWord> {
     let g = Gn::new_scoped(move |mut s| {
@@ -175,8 +192,7 @@ mod tests {
     fn test_corrector_on_valid_word() {
         let word = "ab";
         let word_list = vec!["ab", "cd"];
-        let word_dataset = WordDataSet::from(word_list);
-        let s = SimpleCorrector { data_set: word_dataset };
+        let s = SimpleCorrector::from(word_list);
         let res = s.correct("ab");
         dbg!(res);
     }
@@ -186,8 +202,7 @@ mod tests {
     fn test_corrector_on_invalid_word() {
         let test_word = "aa";
         let word_list = vec!["ab", "cd"];
-        let word_dataset = WordDataSet::from(word_list);
-        let s = SimpleCorrector { data_set: word_dataset };
+        let s = SimpleCorrector::from(word_list);
         let res = s.correct(test_word);
         assert_eq!(res.unwrap(), "ab");
     }
