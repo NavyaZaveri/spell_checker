@@ -4,6 +4,9 @@ mod corrector;
 extern crate generator;
 
 use generator::{Generator, Gn};
+use std::io::{BufReader, BufRead};
+use std::collections::HashMap;
+use std::fs::File;
 
 
 type Word = AsRef<str>;
@@ -51,6 +54,8 @@ fn main() {
     let s = Screen { componenets: vec![Box::new(Foo {}), Box::new(Bar {})] };
     s.run();
     let string = String::from("foepfe");
+
+    let reader = BufReader::new(File::open("foo.xt").expect("Cannot open file.txt"));
 
 }
 

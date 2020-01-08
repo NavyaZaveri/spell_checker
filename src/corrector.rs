@@ -2,17 +2,21 @@ use generator::{Gn, Generator, Scope, done};
 use std::collections::{HashMap, HashSet};
 use std::ops::Add;
 
+use std::io::{BufRead, BufReader};
+use std::fs::File;
 
-macro_rules! hashmap {
-    ($( $key: expr => $val: expr ),*) => {{
-         let mut map = ::std::collections::HashMap::new();
-         $( map.insert($key, $val); )*
-         map
-    }}
+
+#[derive(Debug)]
+struct EditWord {
+    word: String,
+    editDistance: usize,
 }
 
-
-
+impl EditWord {
+    fn new(w: String, editDistance: usize) -> EditWord {
+        return EditWord { word: w, editDistance };
+    }
+}
 
 
 static ASCII_LOWER: [char; 26] = [
@@ -27,29 +31,41 @@ static ASCII_LOWER: [char; 26] = [
 
 type Stream<'s, T> = Generator<'s, (), T>;
 
-pub struct WordDataSet<'a> {
-    counter: HashMap<&'a str, usize>
+pub struct WordDataSet {
+    counter: HashMap<String, usize>
 }
 
-impl<'a> From<Vec<&'a str>> for WordDataSet<'a> {
+
+fn extract_words(filename: &'static str) -> HashMap<String, usize> {
+    let reader = BufReader::new(File::open(filename).expect("Cannot open file.txt"));
+    let mut map = HashMap::new();
+    for line in reader.lines() {
+        for word in line.unwrap().split_whitespace() {
+            map.insert(word.to_string(), 20);
+        }
+    }
+    map
+}
+
+impl<'a> From<Vec<&'a str>> for WordDataSet {
     fn from(vec: Vec<&'a str>) -> Self {
-        let mut counter: HashMap<&'a str, usize> = HashMap::new();
+        let mut counter = HashMap::new();
         for w in vec {
-            *counter.entry(w).or_default() += 1;
+            *counter.entry(w.to_string()).or_default() += 1;
         }
         return WordDataSet { counter };
     }
 }
 
-impl<'a> WordDataSet<'a> {
-    pub fn prob(&'a self, word: &'a str) -> f64 {
+impl WordDataSet {
+    pub fn prob(&self, word: &str) -> f64 {
         if !self.counter.contains_key(word) {
             return 0.0;
         }
         return *self.counter.get(word).unwrap() as f64 / self.counter.values().sum::<usize>() as f64;
     }
 
-    fn exists(&'a self, word: &'a str) -> bool {
+    fn exists(&self, word: &str) -> bool {
         return self.counter.contains_key(word);
     }
 }
@@ -60,22 +76,22 @@ fn splits(w: &str) -> Vec<(&str, &str)> {
 }
 
 
-pub struct SimpleCorrector<'a> {
-    data_set: WordDataSet<'a>
+pub struct SimpleCorrector {
+    data_set: WordDataSet
 }
 
 
-impl<'a> SimpleCorrector<'a> {
+impl SimpleCorrector {
     pub fn correct(&self, word: &str) -> Option<String> {
         if self.data_set.exists(word) {
             return Some(word.to_string());
         }
 
-        edit1(word)
-            .filter(|w| self.data_set.exists(w))
-            .map(|x| (x.to_string(), self.data_set.prob(&x)))
-            .max_by(|(w1, p1), (w2, p2)| p1.partial_cmp(p2).expect("Tried to compare NAN"))
-            .map(|(w, p)| w)
+        edits(1, word)
+            .filter(|e| self.data_set.exists(&e.word))
+            .map(|e| ((1 / e.editDistance) as f64 * self.data_set.prob(&e.word), e.word))
+            .max_by(|(p1, w1), (p2, w2)| p1.partial_cmp(p2).expect("Tried to compare NAN"))
+            .map(|(p, w)| w)
     }
 }
 
@@ -107,16 +123,24 @@ fn edit1<'a>(w: &'a str) -> Stream<String> {
     return g;
 }
 
-fn edits<'a>(n: usize, word: &'a str) -> Stream<'a, String> {
+fn edits(n: usize, word: &str) -> Stream<EditWord> {
     let g = Gn::new_scoped(move |mut s| {
-        let mut v = vec![word];
-        let r = &String::from("fneopfe");
-        v.push(r);
-        dbg!(v);
+        let mut v = vec![word.to_string()];
+        let mut seen = HashSet::new();
+        seen.insert(word.to_string());
         for i in 0..n {
-            for w in edit1(word) {
-                s.yield_(w);
+            let mut next_list = vec![];
+            for word in v {
+                for w in edit1(&word) {
+                    if !seen.contains(&w) {
+                        next_list.push(w.to_string());
+                        seen.insert(w.to_string());
+                        let editWord = EditWord::new(w.to_string(), i + 1);
+                        s.yield_(editWord);
+                    }
+                }
             }
+            v = next_list;
         }
         done!();
     });
@@ -130,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_word_prob() {
-        let data_set = WordDataSet { counter: hashmap!["A" => 2, "B"=> 2] };
+        let data_set = WordDataSet::from(vec!["A", "B"]);
         assert_eq!(data_set.prob("B"), 0.5)
     }
 
