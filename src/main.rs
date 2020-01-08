@@ -32,7 +32,7 @@ fn print<S: AsRef<str>>(stringlike: S) {
     println!("got: {:?}", str_ref)
 }
 
-fn create() -> String{
+fn create() -> String {
     return "fpwe".to_string();
 }
 
@@ -56,7 +56,6 @@ fn main() {
     let string = String::from("foepfe");
 
     let reader = BufReader::new(File::open("foo.xt").expect("Cannot open file.txt"));
-
 }
 
 trait Draw {

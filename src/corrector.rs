@@ -31,6 +31,8 @@ static ASCII_LOWER: [char; 26] = [
 
 type Stream<'s, T> = Generator<'s, (), T>;
 
+
+#[derive(Debug)]
 pub struct WordDataSet {
     counter: HashMap<String, usize>
 }
@@ -96,7 +98,7 @@ impl SimpleCorrector {
 }
 
 
-fn edit1<'a>(w: &'a str) -> Stream<String> {
+fn edit1(w: &str) -> Stream<String> {
     let pairs = splits(w);
     let g = Gn::new_scoped(move |mut s| {
         //deletes
