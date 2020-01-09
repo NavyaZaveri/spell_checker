@@ -37,7 +37,8 @@ type Stream<'s, T> = Generator<'s, (), T>;
 
 #[derive(Debug)]
 pub struct WordDataSet {
-    counter: HashMap<String, usize>
+    counter: HashMap<String, usize>,
+    total_word_count: usize,
 }
 
 
@@ -59,7 +60,8 @@ impl<'a> From<Vec<&'a str>> for WordDataSet {
         for w in vec {
             *counter.entry(w.to_string()).or_default() += 1;
         }
-        return WordDataSet { counter };
+        let total_word_count = counter.values().sum::<usize>();
+        return WordDataSet { counter, total_word_count };
     }
 }
 
@@ -70,12 +72,13 @@ impl<'a> From<Vec<&'a str>> for SimpleCorrector {
     }
 }
 
+
 impl WordDataSet {
     pub fn prob(&self, word: &str) -> f64 {
         if !self.counter.contains_key(word) {
             return 0.0;
         }
-        return *self.counter.get(word).unwrap() as f64 / self.counter.values().sum::<usize>() as f64;
+        return *self.counter.get(word).unwrap() as f64 / self.total_word_count as f64;
     }
 
     fn exists(&self, word: &str) -> bool {
@@ -83,8 +86,11 @@ impl WordDataSet {
     }
 
     pub fn new(filename: &str) -> WordDataSet {
+        let counter = extract_words_from_file(filename);
+
         return WordDataSet {
-            counter: extract_words_from_file(filename)
+            total_word_count: *&counter.values().sum::<usize>(),
+            counter,
         };
     }
 }
@@ -116,6 +122,10 @@ impl SimpleCorrector {
             .map(|e| ((1 / e.editDistance) as f64 * self.data_set.prob(&e.word), e.word))
             .max_by(|(p1, w1), (p2, w2)| p1.partial_cmp(p2).expect("Tried to compare NAN"))
             .map(|(p, w)| w)
+    }
+
+    pub fn correct_sentence(&self, words: Vec<&str>) -> Vec<Option<String>> {
+        words.iter().map(|w| self.correct(w)).collect()
     }
 }
 

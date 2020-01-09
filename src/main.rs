@@ -18,8 +18,8 @@ use crate::corrector::SimpleCorrector;
 struct Cli {
     /// Input file to read
     correct: String,
-
 }
+
 
 fn main() -> CliResult {
     let args = Cli::from_args();
@@ -29,7 +29,6 @@ fn main() -> CliResult {
         None => { println!("Sorry, no matches found!"); }
         Some(x) => { println!("Did you mean {}?", x); }
     }
-
     Ok(())
 }
 
