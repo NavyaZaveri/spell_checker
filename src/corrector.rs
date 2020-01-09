@@ -45,7 +45,10 @@ pub struct WordDataSet {
 fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
     let re = Regex::new("[a-z]+").unwrap();
     let filepath = fs::read_to_string(filename).unwrap();
-    let words: Vec<String> = re.find_iter(&filepath).map(|mat| mat.as_str().to_ascii_lowercase()).collect();
+    let words: Vec<String> = re.
+        find_iter(&filepath)
+        .map(|mat| mat.as_str().to_ascii_lowercase())
+        .collect();
 
     let mut counter = HashMap::new();
     for w in words {
@@ -117,15 +120,21 @@ impl SimpleCorrector {
             return Some(word.to_string());
         }
 
-        edits(1, word)
+
+        edits(2, word)
             .filter(|e| self.data_set.exists(&e.word))
             .map(|e| ((1 / e.editDistance) as f64 * self.data_set.prob(&e.word), e.word))
             .max_by(|(p1, w1), (p2, w2)| p1.partial_cmp(p2).expect("Tried to compare NAN"))
             .map(|(p, w)| w)
     }
 
-    pub fn correct_sentence(&self, words: Vec<&str>) -> Vec<Option<String>> {
-        words.iter().map(|w| self.correct(w)).collect()
+
+    pub fn correct_sentence(&self, words: &str) -> String {
+        words
+            .split_whitespace()
+            .map(|w| self.correct(w).unwrap_or(w.to_owned()))
+            .collect::<Vec<_>>()
+            .join(" ")
     }
 }
 
@@ -134,15 +143,29 @@ fn edit1(w: &str) -> Stream<String> {
     let pairs = splits(w);
     let g = Gn::new_scoped(move |mut s| {
         for (a, b) in pairs.iter() {
-            let delete = format!("{}{}", a, b.get(1..).unwrap_or_default());
+            let delete = format!("{}{}", a,
+                                 b.get(1..).unwrap_or_default());
             s.yield_(delete);
 
             for new_char in ASCII_LOWER.iter() {
-                let replace = format!("{}{}{}", a, new_char, b.get(1..).unwrap_or_default());
+                let replace = format!("{}{}{}",
+                                      a,
+                                      new_char,
+                                      b.get(1..).unwrap_or_default());
                 s.yield_(replace);
 
-                let insert = format!("{}{}{}", a, new_char, b);
+                let insert = format!("{}{}{}",
+                                     a,
+                                     new_char,
+                                     b);
                 s.yield_(insert);
+
+                let transpose = format!("{}{}{}{}",
+                                        a,
+                                        b.chars().nth(1).unwrap_or_default(),
+                                        b.chars().nth(0).unwrap_or_default(),
+                                        b.get(2..).unwrap_or_default());
+                s.yield_(transpose);
             }
         }
 
@@ -219,10 +242,10 @@ mod tests {
 
     #[test]
     fn test_corrector_with_actual_dataset() {
-        let test_word = "inconcevable";
+        let test_word = "inconcevable cigarete condecsend";
         let s = SimpleCorrector::new("big.txt");
-        let corrected_word = s.correct(test_word);
-        assert_eq!(corrected_word.unwrap(), "inconceivable");
+        let corrected_word = s.correct_sentence(test_word);
+        assert_eq!(corrected_word, "inconceivable cigarette condescend");
     }
 }
 
