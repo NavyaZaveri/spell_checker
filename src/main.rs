@@ -5,11 +5,7 @@ extern crate generator;
 extern crate regex;
 
 use crate::corrector::SimpleCorrector;
-use generator::{Generator, Gn};
 use quicli::prelude::*;
-use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

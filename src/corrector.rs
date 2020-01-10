@@ -1,6 +1,5 @@
 use generator::{done, Generator, Gn, Scope};
 use std::collections::{HashMap, HashSet};
-use std::ops::Add;
 
 use regex::Regex;
 use std::fs;
@@ -11,14 +10,14 @@ use std::iter::FromIterator;
 #[derive(Debug)]
 struct EditWord {
     word: String,
-    editDistance: usize,
+    edit_distance: usize,
 }
 
 impl EditWord {
     fn new(w: String, editDistance: usize) -> EditWord {
         return EditWord {
             word: w,
-            editDistance,
+            edit_distance: editDistance,
         };
     }
 }
@@ -53,30 +52,34 @@ fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
 
 impl<'a> FromIterator<&'a str> for WordDataSet {
     fn from_iter<I>(words: I) -> Self
-        where
-            I: IntoIterator<Item=&'a str>,
+    where
+        I: IntoIterator<Item = &'a str>,
     {
         let mut counter = HashMap::new();
         for w in words {
             *counter.entry(w.to_string()).or_default() += 1;
         }
         let total_word_count = counter.values().sum();
-        WordDataSet { counter, total_word_count }
+        WordDataSet {
+            counter,
+            total_word_count,
+        }
     }
 }
 
 impl<'a> FromIterator<&'a str> for SimpleCorrector {
-    fn from_iter<T: IntoIterator<Item=&'a str>>(iter: T) -> Self {
-        SimpleCorrector { data_set: WordDataSet::from_iter(iter) }
+    fn from_iter<T: IntoIterator<Item = &'a str>>(iter: T) -> Self {
+        SimpleCorrector {
+            data_set: WordDataSet::from_iter(iter),
+        }
     }
 }
 
-
 impl WordDataSet {
     pub fn prob(&self, word: &str) -> f64 {
-        self.counter.get(word).map_or(0.0, |&c| {
-            c as f64 / self.total_word_count as f64
-        })
+        self.counter
+            .get(word)
+            .map_or(0.0, |&c| c as f64 / self.total_word_count as f64)
     }
 
     fn exists(&self, word: &str) -> bool {
@@ -93,11 +96,9 @@ impl WordDataSet {
     }
 }
 
-
-fn splits(w: &str) -> impl Iterator<Item=(&str, &str)>{
+fn splits(w: &str) -> impl Iterator<Item = (&str, &str)> {
     (0..=w.len()).map(move |i| w.split_at(i))
 }
-
 
 pub struct SimpleCorrector {
     data_set: WordDataSet,
@@ -118,7 +119,7 @@ impl SimpleCorrector {
             .filter(|e| self.data_set.exists(&e.word))
             .map(|e| {
                 (
-                    (1 / e.editDistance) as f64 * self.data_set.prob(&e.word),
+                    (1 / e.edit_distance) as f64 * self.data_set.prob(&e.word),
                     e.word,
                 )
             })
