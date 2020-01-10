@@ -50,8 +50,8 @@ fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
 
 impl<'a> FromIterator<&'a str> for WordDataSet {
     fn from_iter<I>(words: I) -> Self
-    where
-        I: IntoIterator<Item = &'a str>,
+        where
+            I: IntoIterator<Item=&'a str>,
     {
         let mut counter = HashMap::new();
         for w in words {
@@ -66,7 +66,7 @@ impl<'a> FromIterator<&'a str> for WordDataSet {
 }
 
 impl<'a> FromIterator<&'a str> for SimpleCorrector {
-    fn from_iter<T: IntoIterator<Item = &'a str>>(iter: T) -> Self {
+    fn from_iter<T: IntoIterator<Item=&'a str>>(iter: T) -> Self {
         SimpleCorrector {
             data_set: WordDataSet::from_iter(iter),
         }
@@ -94,7 +94,7 @@ impl WordDataSet {
     }
 }
 
-fn splits(w: &str) -> impl Iterator<Item = (&str, &str)> {
+fn splits(w: &str) -> impl Iterator<Item=(&str, &str)> {
     (0..=w.len()).map(move |i| w.split_at(i))
 }
 
@@ -140,21 +140,21 @@ fn edit1(w: &str) -> Stream<String> {
             let delete = format!("{}{}", a, b.get(1..).unwrap_or_default());
             s.yield_(delete);
 
+            let transpose = format!(
+                "{}{}{}{}",
+                a,
+                b.chars().nth(1).unwrap_or_default(),
+                b.chars().nth(0).unwrap_or_default(),
+                b.get(2..).unwrap_or_default()
+            );
+            s.yield_(transpose);
+
             for new_char in ASCII_LOWER.iter() {
                 let replace = format!("{}{}{}", a, new_char, b.get(1..).unwrap_or_default());
                 s.yield_(replace);
 
                 let insert = format!("{}{}{}", a, new_char, b);
                 s.yield_(insert);
-
-                let transpose = format!(
-                    "{}{}{}{}",
-                    a,
-                    b.chars().nth(1).unwrap_or_default(),
-                    b.chars().nth(0).unwrap_or_default(),
-                    b.get(2..).unwrap_or_default()
-                );
-                s.yield_(transpose);
             }
         }
 
