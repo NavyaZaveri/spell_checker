@@ -3,8 +3,6 @@ use std::collections::{HashMap, HashSet};
 
 use regex::Regex;
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::iter::FromIterator;
 
 #[derive(Debug)]
@@ -14,10 +12,10 @@ struct EditWord {
 }
 
 impl EditWord {
-    fn new(w: String, editDistance: usize) -> EditWord {
+    fn new(w: String, edit_distance: usize) -> EditWord {
         return EditWord {
             word: w,
-            edit_distance: editDistance,
+            edit_distance,
         };
     }
 }
