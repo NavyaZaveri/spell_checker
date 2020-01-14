@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 use regex::Regex;
 use std::fs;
 use std::iter::FromIterator;
+use std::borrow::Borrow;
 
 #[derive(Debug)]
 struct EditWord {
@@ -32,6 +33,7 @@ struct WordDataSet {
     counter: HashMap<String, usize>,
     total_word_count: usize,
 }
+
 
 fn extract_words_from_file(filename: &str) -> HashMap<String, usize> {
     let re = Regex::new("[a-z]+").unwrap();
@@ -93,6 +95,7 @@ impl WordDataSet {
         };
     }
 }
+
 
 fn splits(w: &str) -> impl Iterator<Item=(&str, &str)> {
     (0..=w.len()).map(move |i| w.split_at(i))

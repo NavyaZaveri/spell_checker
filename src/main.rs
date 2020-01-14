@@ -1,3 +1,9 @@
+/// # spelling-corrector
+///
+/// A simple command line utility to correct typos
+/// Run like so: ./spelling_corrector --typo "foo"
+
+
 mod corrector;
 
 #[macro_use]
