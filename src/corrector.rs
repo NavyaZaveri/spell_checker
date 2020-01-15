@@ -4,7 +4,6 @@ use std::collections::{HashMap, HashSet};
 use regex::Regex;
 use std::fs;
 use std::iter::FromIterator;
-use std::borrow::Borrow;
 
 #[derive(Debug)]
 struct EditWord {
