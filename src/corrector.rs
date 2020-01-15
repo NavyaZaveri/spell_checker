@@ -111,6 +111,12 @@ impl SimpleCorrector {
             data_set: WordDataSet::new(filename),
         }
     }
+
+    pub fn default() -> SimpleCorrector {
+        SimpleCorrector {
+            data_set: WordDataSet::new("big.txt")
+        }
+    }
     pub fn correct(&self, word: &str) -> Option<String> {
         if self.data_set.exists(word) {
             return Some(word.to_string());

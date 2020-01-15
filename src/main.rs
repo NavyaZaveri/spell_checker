@@ -1,14 +1,16 @@
 //! # spelling-corrector
 //!
 //! A simple command line utility to correct typos
+//! Run like so ```
+//!             ./spelling_correct --typo "foo"
+//!               ```
 
-mod corrector;
 
 #[macro_use]
 extern crate generator;
 extern crate regex;
 
-use crate::corrector::SimpleCorrector;
+use spelling_corrector::corrector::SimpleCorrector;
 use quicli::prelude::*;
 use structopt::StructOpt;
 
@@ -17,6 +19,7 @@ struct Cli {
     #[structopt(short, long)]
     typo: String,
 }
+
 
 fn main() -> CliResult {
     let args = Cli::from_args();
