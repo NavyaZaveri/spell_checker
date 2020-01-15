@@ -5,6 +5,7 @@ authors = ["NavyaZaveri <navyajayesh+1@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/NavyaZaveri/spell_checker"
 description = "A simple spelling corrector"
+readme = "README.md"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
