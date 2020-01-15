@@ -1,9 +1,3 @@
-//! # spelling-corrector
-//!
-//! A simple command line utility to correct typos
-//! Run like so ```
-//!             ./spelling_correct --typo "foo"
-//!               ```
 
 
 #[macro_use]
