@@ -1,6 +1,6 @@
 [package]
 name = "spelling_corrector"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["NavyaZaveri <navyajayesh+1@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/NavyaZaveri/spell_checker"
