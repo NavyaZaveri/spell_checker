@@ -1,6 +1,6 @@
 # spelling_corrector 
 
-A simple command line utility to correct typos. Based on this Peter Norvig's excellent [article](http://norvig.com/spell-correct.html).
+A simple command line utility to correct typos. Based on Peter Norvig's excellent [article](http://norvig.com/spell-correct.html).
 <br>
 
 Example usage:
