@@ -6,6 +6,7 @@ A simple command line utility to correct typos. Based on Peter Norvig's excellen
 Example usage:
  ```
   use spelling_corrector::corrector;
-  let correct = corrector::SimpleCorrector::default();  let words = correct.correct_sentence("the architexture is inconcievable");
+  let correct = corrector::SimpleCorrector::default(); 
+  let words = correct.correct_sentence("the architexture is inconcievable");
   assert_eq!(words, "the architecture is inconceivable")
 ```
